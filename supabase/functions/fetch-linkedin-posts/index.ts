@@ -15,6 +15,11 @@ serve(async (req) => {
     const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
     const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
     
+    console.log('LinkedIn Client ID exists:', !!clientId);
+    console.log('LinkedIn Client ID length:', clientId?.length || 0);
+    console.log('LinkedIn Client Secret exists:', !!clientSecret);
+    console.log('LinkedIn Client Secret length:', clientSecret?.length || 0);
+    
     if (!clientId || !clientSecret) {
       throw new Error('LinkedIn credentials not configured');
     }
