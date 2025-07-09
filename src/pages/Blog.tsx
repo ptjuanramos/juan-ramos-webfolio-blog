@@ -372,55 +372,112 @@ const Blog = () => {
               <Card className="border border-slate-200 bg-white/70 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold text-slate-900">Juan Ramos</CardTitle>
-                  <p className="text-slate-600">Senior Software Engineer & Technical Leader</p>
+                  <p className="text-slate-600">Senior Software Engineer & Technical Architect</p>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Contact Info */}
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900 mb-3">Contact</h3>
                     <div className="text-slate-700 space-y-1">
-                      <p>Email: juan.ramos@example.com</p>
-                      <p>LinkedIn: linkedin.com/in/juan-ramos</p>
-                      <p>GitHub: github.com/juanramos</p>
+                      <p>LinkedIn: linkedin.com/in/juanramospt</p>
+                      <p>Location: Portugal</p>
                     </div>
                   </div>
 
-                  {/* Summary */}
+                  {/* Languages */}
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Summary</h3>
-                    <p className="text-slate-700">
-                      Experienced software engineer with 8+ years of experience in building scalable web applications and microservices. 
-                      Passionate about clean code, system architecture, and technical leadership. Proven track record of delivering 
-                      high-quality software solutions and mentoring development teams.
-                    </p>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Languages</h3>
+                    <div className="grid grid-cols-2 gap-3 text-slate-700">
+                      <div className="flex justify-between">
+                        <span>Portuguese</span>
+                        <span className="text-slate-500">Proficient (C2)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>English</span>
+                        <span className="text-slate-500">Advanced (C1)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Spanish</span>
+                        <span className="text-slate-500">Advanced (C1)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>German</span>
+                        <span className="text-slate-500">Intermediate (B1)</span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Experience */}
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Experience</h3>
-                    <div className="space-y-4">
-                      <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4">Experience</h3>
+                    <div className="space-y-6">
+                      <div className="border-l-2 border-slate-200 pl-4">
                         <h4 className="font-medium text-slate-900">Senior Software Engineer</h4>
-                        <p className="text-slate-600 text-sm">TechCorp Inc. • 2022 - Present</p>
-                        <p className="text-slate-700 text-sm mt-2">
-                          Leading development of microservices architecture, implementing CI/CD pipelines, and mentoring junior developers.
-                        </p>
+                        <p className="text-slate-600 text-sm">UBS • Present</p>
+                        <ul className="text-slate-700 text-sm mt-2 space-y-1 list-disc list-inside">
+                          <li>Specialized in Autosys, Microservices, REST APIs, and Oracle SQL</li>
+                          <li>Engineered and deployed over 30 components in OpenShift and on-premises environments</li>
+                          <li>Designed Azure architecture and ensured adherence to UBS technical standards</li>
+                          <li>Managed projects, assessed risks, and coordinated with program managers and ITILs</li>
+                        </ul>
                       </div>
-                      <div>
+
+                      <div className="border-l-2 border-slate-200 pl-4">
+                        <h4 className="font-medium text-slate-900">Technical Architect</h4>
+                        <p className="text-slate-600 text-sm">Unit4 • 2021 - 2024</p>
+                        <ul className="text-slate-700 text-sm mt-2 space-y-1 list-disc list-inside">
+                          <li>Architected and led 4 projects including HRMS and ERP systems</li>
+                          <li>Designed multi-tenant enterprise message broker for real-time event distribution</li>
+                          <li>Led automation initiative for ERP client configuration migration</li>
+                          <li>Led architecture reviews supporting €1M cost savings over 2 years</li>
+                          <li>Migrated on-premises solutions to Azure (SaaS, PaaS, IaaS)</li>
+                        </ul>
+                      </div>
+
+                      <div className="border-l-2 border-slate-200 pl-4">
                         <h4 className="font-medium text-slate-900">Software Engineer</h4>
-                        <p className="text-slate-600 text-sm">StartupXYZ • 2019 - 2022</p>
-                        <p className="text-slate-700 text-sm mt-2">
-                          Built scalable web applications using React, Node.js, and cloud technologies.
-                        </p>
+                        <p className="text-slate-600 text-sm">Agap2IT • 2018 - 2021</p>
+                        <ul className="text-slate-700 text-sm mt-2 space-y-1 list-disc list-inside">
+                          <li>Developed full-stack applications using Java, .NET, MySQL, and Azure</li>
+                          <li>Optimized banking application achieving 25% performance increase</li>
+                          <li>Achieved 100% sprint delivery with close stakeholder collaboration</li>
+                          <li>Implemented Docker applications and deployed on Azure environments</li>
+                          <li>Mentored junior developers and maintained code quality standards</li>
+                        </ul>
                       </div>
+
+                      <div className="border-l-2 border-slate-200 pl-4">
+                        <h4 className="font-medium text-slate-900">Software Engineer</h4>
+                        <p className="text-slate-600 text-sm">Mater Dynamics • 2017 - 2018</p>
+                        <ul className="text-slate-700 text-sm mt-2 space-y-1 list-disc list-inside">
+                          <li>Mentored team of 5 developers and conducted code reviews</li>
+                          <li>Worked on pilot projects for client and investor presentations</li>
+                          <li>Developed REST APIs with Java, Spring, CodeIgniter, jQuery, HTML/CSS3</li>
+                          <li>Implemented mobile apps with NFC scanning for logistics</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Education */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Education</h3>
+                    <div>
+                      <h4 className="font-medium text-slate-900">Bachelor of Science (B.S.) in Computer Engineering</h4>
+                      <p className="text-slate-600 text-sm">Faculdade de Ciências da Universidade de Lisboa, Lisbon</p>
                     </div>
                   </div>
 
                   {/* Skills */}
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Skills</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Technical Skills</h3>
                     <div className="flex flex-wrap gap-2">
-                      {["JavaScript", "TypeScript", "React", "Node.js", "Python", "Docker", "Kubernetes", "AWS", "PostgreSQL", "MongoDB"].map((skill) => (
+                      {[
+                        "Java", ".NET", "Oracle SQL", "MySQL", "REST APIs", "Microservices", 
+                        "Azure", "Docker", "OpenShift", "Autosys", "Spring", "CodeIgniter", 
+                        "jQuery", "HTML/CSS3", "HRMS", "ERP Systems", "Cloud Migration", 
+                        "Multi-tenant Architecture", "Mobile Development", "NFC"
+                      ].map((skill) => (
                         <Badge key={skill} variant="secondary" className="text-xs">
                           {skill}
                         </Badge>
