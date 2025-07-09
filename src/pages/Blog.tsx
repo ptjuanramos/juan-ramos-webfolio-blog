@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Calendar, ExternalLink, Hash, Linkedin, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, ExternalLink, Hash, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,23 +12,13 @@ interface BlogPost {
   title: string;
   excerpt: string;
   date: string;
-  platform: "linkedin" | "medium";
+  platform: "medium";
   url: string;
   tags: string[];
   readTime: string;
 }
 
 const mockBlogPosts: BlogPost[] = [
-  {
-    id: "1",
-    title: "The Future of AI in Software Architecture",
-    excerpt: "Exploring how artificial intelligence is revolutionizing the way we design and build software systems. From automated code generation to intelligent system monitoring...",
-    date: "2024-07-05",
-    platform: "linkedin",
-    url: "https://linkedin.com/in/juan-ramos/posts/ai-architecture",
-    tags: ["AI", "Architecture", "Software Engineering"],
-    readTime: "5 min read"
-  },
   {
     id: "2",
     title: "Building Scalable Microservices with Modern Patterns",
@@ -40,16 +30,6 @@ const mockBlogPosts: BlogPost[] = [
     readTime: "8 min read"
   },
   {
-    id: "3",
-    title: "Why Clean Code Matters More Than Ever",
-    excerpt: "In an era of rapid development and AI-assisted coding, the principles of clean code become even more critical. Here's why maintainability trumps speed...",
-    date: "2024-06-20",
-    platform: "linkedin",
-    url: "https://linkedin.com/in/juan-ramos/posts/clean-code",
-    tags: ["Clean Code", "Best Practices", "Software Engineering"],
-    readTime: "4 min read"
-  },
-  {
     id: "4",
     title: "Machine Learning Operations: From Model to Production",
     excerpt: "The journey from a machine learning model in a Jupyter notebook to a production system serving millions of users. MLOps best practices and real-world challenges...",
@@ -58,29 +38,14 @@ const mockBlogPosts: BlogPost[] = [
     url: "https://medium.com/@juanramos/mlops-production",
     tags: ["MLOps", "AI", "DevOps", "Production"],
     readTime: "10 min read"
-  },
-  {
-    id: "5",
-    title: "The Art of Technical Leadership",
-    excerpt: "Moving from individual contributor to technical leader requires more than just coding skills. Leadership lessons learned from building and scaling engineering teams...",
-    date: "2024-06-10",
-    platform: "linkedin",
-    url: "https://linkedin.com/in/juan-ramos/posts/technical-leadership",
-    tags: ["Leadership", "Management", "Career"],
-    readTime: "6 min read"
   }
 ];
 
 const Blog = () => {
   const navigate = useNavigate();
-  const [selectedPlatform, setSelectedPlatform] = useState<"all" | "linkedin" | "medium">("all");
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const filteredPosts = selectedPlatform === "all" 
-    ? posts 
-    : posts.filter(post => post.platform === selectedPlatform);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -88,30 +53,20 @@ const Blog = () => {
       setError(null);
       
       try {
-        const [linkedinResponse, mediumResponse] = await Promise.allSettled([
-          supabase.functions.invoke('fetch-linkedin-posts'),
-          supabase.functions.invoke('fetch-medium-posts')
-        ]);
+        const mediumResponse = await supabase.functions.invoke('fetch-medium-posts');
 
-        const allPosts: BlogPost[] = [];
+        let allPosts: BlogPost[] = [];
 
-        if (linkedinResponse.status === 'fulfilled') {
-          const data = linkedinResponse.value.data;
-          if (data?.authUrl) {
-            // If LinkedIn needs authentication, open auth window
-            setError('LinkedIn authentication required. Please authenticate to see your posts.');
-            console.log('LinkedIn auth URL:', data.authUrl);
-          } else if (data?.posts) {
-            allPosts.push(...data.posts);
-          }
+        if (mediumResponse.error) {
+          console.warn('Medium posts failed to load:', mediumResponse.error);
+          setError('Failed to load Medium posts');
+          // Fallback to mock Medium posts only
+          allPosts = mockBlogPosts.filter(post => post.platform === 'medium');
+        } else if (mediumResponse.data?.posts) {
+          allPosts = mediumResponse.data.posts;
         } else {
-          console.warn('LinkedIn posts failed to load:', linkedinResponse.reason);
-        }
-
-        if (mediumResponse.status === 'fulfilled' && mediumResponse.value.data?.posts) {
-          allPosts.push(...mediumResponse.value.data.posts);
-        } else {
-          console.warn('Medium posts failed to load:', mediumResponse.status === 'rejected' ? mediumResponse.reason : mediumResponse.value);
+          // If no posts from API, use mock Medium posts
+          allPosts = mockBlogPosts.filter(post => post.platform === 'medium');
         }
 
         // Sort posts by date (newest first)
@@ -121,8 +76,8 @@ const Blog = () => {
       } catch (err) {
         console.error('Error fetching posts:', err);
         setError('Failed to load posts');
-        // Fallback to mock data
-        setPosts(mockBlogPosts);
+        // Fallback to mock Medium posts only
+        setPosts(mockBlogPosts.filter(post => post.platform === 'medium'));
       } finally {
         setLoading(false);
       }
@@ -167,43 +122,11 @@ const Blog = () => {
           </div>
         )}
 
-        {/* Filter buttons */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          <Button
-            variant={selectedPlatform === "all" ? "default" : "outline"}
-            onClick={() => setSelectedPlatform("all")}
-            className="flex items-center space-x-2"
-            disabled={loading}
-          >
-            <span>All Posts</span>
-            <Badge variant="secondary" className="ml-2">
-              {posts.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={selectedPlatform === "linkedin" ? "default" : "outline"}
-            onClick={() => setSelectedPlatform("linkedin")}
-            className="flex items-center space-x-2"
-            disabled={loading}
-          >
-            <Linkedin size={16} />
-            <span>LinkedIn</span>
-            <Badge variant="secondary" className="ml-2">
-              {posts.filter(p => p.platform === "linkedin").length}
-            </Badge>
-          </Button>
-          <Button
-            variant={selectedPlatform === "medium" ? "default" : "outline"}
-            onClick={() => setSelectedPlatform("medium")}
-            className="flex items-center space-x-2"
-            disabled={loading}
-          >
-            <Hash size={16} />
-            <span>Medium</span>
-            <Badge variant="secondary" className="ml-2">
-              {posts.filter(p => p.platform === "medium").length}
-            </Badge>
-          </Button>
+        {/* Posts count */}
+        <div className="flex items-center gap-2 mb-8">
+          <Badge variant="secondary" className="text-sm">
+            {posts.length} Medium {posts.length === 1 ? 'post' : 'posts'}
+          </Badge>
         </div>
 
         {/* Loading state */}
@@ -217,7 +140,7 @@ const Blog = () => {
         {/* Blog posts grid */}
         {!loading && (
           <div className="space-y-6">
-          {filteredPosts.map((post) => (
+          {posts.map((post) => (
             <Card
               key={post.id}
               className="group hover:shadow-lg transition-all duration-300 border border-slate-200 hover:border-slate-300 bg-white/70 backdrop-blur-sm"
@@ -237,12 +160,8 @@ const Blog = () => {
                       <span>{post.readTime}</span>
                       <span>•</span>
                       <div className="flex items-center space-x-1">
-                        {post.platform === "linkedin" ? (
-                          <Linkedin size={14} className="text-blue-600" />
-                        ) : (
-                          <Hash size={14} className="text-green-600" />
-                        )}
-                        <span className="capitalize font-medium">{post.platform}</span>
+                        <Hash size={14} className="text-green-600" />
+                        <span className="capitalize font-medium">Medium</span>
                       </div>
                     </div>
                   </div>
@@ -279,10 +198,10 @@ const Blog = () => {
         )}
 
         {/* No posts message */}
-        {filteredPosts.length === 0 && (
+        {!loading && posts.length === 0 && (
           <div className="text-center py-12">
             <div className="text-slate-400 text-lg">
-              No posts found for the selected platform.
+              No Medium posts found.
             </div>
           </div>
         )}
