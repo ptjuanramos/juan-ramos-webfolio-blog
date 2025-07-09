@@ -1,7 +1,1 @@
 project_id = "vkrfepzlvjiwumtfhyyp"
-
-[functions.fetch-linkedin-posts]
-verify_jwt = false
-
-[functions.fetch-medium-posts]
-verify_jwt = false

@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Calendar, ExternalLink, Hash, Loader2, User, FolderOpen, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 interface BlogPost {
   id: string;
@@ -99,31 +98,51 @@ const Blog = () => {
       setError(null);
       
       try {
-        const mediumResponse = await supabase.functions.invoke('fetch-medium-posts');
-
-        let allPosts: BlogPost[] = [];
-
-        if (mediumResponse.error) {
-          console.warn('Medium posts failed to load:', mediumResponse.error);
-          setError('Failed to load Medium posts');
-          // Fallback to mock Medium posts only
-          allPosts = mockBlogPosts.filter(post => post.platform === 'medium');
-        } else if (mediumResponse.data?.posts) {
-          allPosts = mediumResponse.data.posts;
-        } else {
-          // If no posts from API, use mock Medium posts
-          allPosts = mockBlogPosts.filter(post => post.platform === 'medium');
+        const mediumRssUrl = 'https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@ptjuanramos';
+        
+        const response = await fetch(mediumRssUrl);
+        
+        if (!response.ok) {
+          throw new Error(`RSS2JSON API error: ${response.status}`);
         }
 
-        // Sort posts by date (newest first)
-        allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        const data = await response.json();
         
-        setPosts(allPosts);
+        if (data.status !== 'ok') {
+          throw new Error('RSS2JSON API returned error status');
+        }
+
+        // Transform Medium posts to match our expected format
+        const transformedPosts = data.items?.map((item: any) => {
+          // Extract reading time from content or estimate
+          const contentLength = item.content?.length || item.description?.length || 0;
+          const estimatedReadTime = Math.max(1, Math.ceil(contentLength / 1000));
+          
+          // Clean up description/excerpt
+          const description = item.description || '';
+          const cleanDescription = description.replace(/<[^>]*>/g, '').substring(0, 200);
+          
+          return {
+            id: item.guid || Math.random().toString(),
+            title: item.title || 'Medium Article',
+            excerpt: cleanDescription + (cleanDescription.length === 200 ? '...' : ''),
+            date: new Date(item.pubDate).toISOString().split('T')[0],
+            platform: 'medium' as const,
+            url: item.link,
+            tags: item.categories || ['Medium', 'Article'],
+            readTime: `${estimatedReadTime} min read`
+          };
+        }) || [];
+
+        // Sort posts by date (newest first)
+        transformedPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        setPosts(transformedPosts);
       } catch (err) {
-        console.error('Error fetching posts:', err);
-        setError('Failed to load posts');
-        // Fallback to mock Medium posts only
-        setPosts(mockBlogPosts.filter(post => post.platform === 'medium'));
+        console.error('Error fetching Medium posts:', err);
+        setError('Failed to load Medium posts');
+        // Fallback to mock Medium posts
+        setPosts(mockBlogPosts);
       } finally {
         setLoading(false);
       }
