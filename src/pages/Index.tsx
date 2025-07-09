@@ -67,7 +67,7 @@ const Index = () => {
           {/* Profile Picture */}
           <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden shadow-lg border-2 border-slate-200">
             <img 
-              src="/lovable-uploads/423afc7e-b7b5-447a-a365-177e272a5747.png"
+              src="/public/images/my-picture.png"
               alt="Juan Ramos"
               className="w-full h-full object-cover"
             />
@@ -89,7 +89,7 @@ const Index = () => {
           {/* Social links */}
           <div className="flex justify-center space-x-4 mb-6">
             <a
-              href="https://github.com"
+              href="https://github.com/ptjuanramos"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors duration-200 text-slate-600 hover:scale-110 transform"
@@ -97,7 +97,7 @@ const Index = () => {
               <Github size={20} />
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/in/juanramospt/"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors duration-200 text-slate-600 hover:scale-110 transform"
@@ -105,7 +105,7 @@ const Index = () => {
               <Linkedin size={20} />
             </a>
             <a
-              href="mailto:juan@example.com"
+              href="mailto:ptjuanra@gmail.com"
               className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors duration-200 text-slate-600 hover:scale-110 transform"
             >
               <Mail size={20} />

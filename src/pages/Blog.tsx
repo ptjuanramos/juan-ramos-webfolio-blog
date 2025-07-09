@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Calendar, ExternalLink, Hash, Loader2, User, FolderOpen, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import MyCvAsPdf from "../../public/assets/juan-ramos-2025.pdf"
 
 interface BlogPost {
   id: string;
@@ -17,29 +18,6 @@ interface BlogPost {
   tags: string[];
   readTime: string;
 }
-
-const mockBlogPosts: BlogPost[] = [
-  {
-    id: "2",
-    title: "Building Scalable Microservices with Modern Patterns",
-    excerpt: "A deep dive into microservices architecture patterns that actually work in production. Learn about event sourcing, CQRS, and distributed system challenges...",
-    date: "2024-06-28",
-    platform: "medium",
-    url: "https://medium.com/@juanramos/microservices-patterns",
-    tags: ["Microservices", "Architecture", "Scalability"],
-    readTime: "8 min read"
-  },
-  {
-    id: "4",
-    title: "Machine Learning Operations: From Model to Production",
-    excerpt: "The journey from a machine learning model in a Jupyter notebook to a production system serving millions of users. MLOps best practices and real-world challenges...",
-    date: "2024-06-15",
-    platform: "medium",
-    url: "https://medium.com/@juanramos/mlops-production",
-    tags: ["MLOps", "AI", "DevOps", "Production"],
-    readTime: "10 min read"
-  }
-];
 
 // Mock projects data
 interface Project {
@@ -55,35 +33,35 @@ interface Project {
 }
 
 const mockProjects: Project[] = [
-  {
-    id: "1",
-    title: "E-commerce Microservices Platform",
-    description: "Built a scalable e-commerce platform using microservices architecture with Docker and Kubernetes. Implemented event sourcing and CQRS patterns for high performance.",
-    technologies: ["Node.js", "Docker", "Kubernetes", "Redis", "PostgreSQL"],
-    date: "2024-06-28",
-    status: "completed",
-    blogPostUrl: "https://medium.com/@juanramos/microservices-patterns",
-    githubUrl: "https://github.com/juanramos/ecommerce-microservices"
-  },
-  {
-    id: "2",
-    title: "ML Model Deployment Pipeline",
-    description: "Developed an end-to-end MLOps pipeline for deploying machine learning models to production with automated testing and monitoring.",
-    technologies: ["Python", "MLflow", "Docker", "AWS", "TensorFlow"],
-    date: "2024-06-15",
-    status: "completed",
-    blogPostUrl: "https://medium.com/@juanramos/mlops-production",
-    projectUrl: "https://ml-pipeline.example.com"
-  },
-  {
-    id: "3",
-    title: "Real-time Analytics Dashboard",
-    description: "Created a real-time analytics dashboard for monitoring application performance and user behavior with WebSocket connections.",
-    technologies: ["React", "WebSocket", "Chart.js", "Node.js", "MongoDB"],
-    date: "2024-07-01",
-    status: "ongoing",
-    githubUrl: "https://github.com/juanramos/analytics-dashboard"
-  }
+  // {
+  //   id: "1",
+  //   title: "E-commerce Microservices Platform",
+  //   description: "Built a scalable e-commerce platform using microservices architecture with Docker and Kubernetes. Implemented event sourcing and CQRS patterns for high performance.",
+  //   technologies: ["Node.js", "Docker", "Kubernetes", "Redis", "PostgreSQL"],
+  //   date: "2024-06-28",
+  //   status: "completed",
+  //   blogPostUrl: "https://medium.com/@juanramos/microservices-patterns",
+  //   githubUrl: "https://github.com/juanramos/ecommerce-microservices"
+  // },
+  // {
+  //   id: "2",
+  //   title: "ML Model Deployment Pipeline",
+  //   description: "Developed an end-to-end MLOps pipeline for deploying machine learning models to production with automated testing and monitoring.",
+  //   technologies: ["Python", "MLflow", "Docker", "AWS", "TensorFlow"],
+  //   date: "2024-06-15",
+  //   status: "completed",
+  //   blogPostUrl: "https://medium.com/@juanramos/mlops-production",
+  //   projectUrl: "https://ml-pipeline.example.com"
+  // },
+  // {
+  //   id: "3",
+  //   title: "Real-time Analytics Dashboard",
+  //   description: "Created a real-time analytics dashboard for monitoring application performance and user behavior with WebSocket connections.",
+  //   technologies: ["React", "WebSocket", "Chart.js", "Node.js", "MongoDB"],
+  //   date: "2024-07-01",
+  //   status: "ongoing",
+  //   githubUrl: "https://github.com/juanramos/analytics-dashboard"
+  // }
 ];
 
 const Blog = () => {
@@ -431,8 +409,8 @@ const Blog = () => {
                     <h3 className="text-lg font-semibold text-slate-900 mb-4">Experience</h3>
                     <div className="space-y-6">
                       <div className="border-l-2 border-slate-200 pl-4">
-                        <h4 className="font-medium text-slate-900">Senior Software Engineer</h4>
-                        <p className="text-slate-600 text-sm">UBS • Present</p>
+                        <h4 className="font-medium text-slate-900">Technical Lead</h4>
+                        <p className="text-slate-600 text-sm">UBS via Cognizant • Present</p>
                         <ul className="text-slate-700 text-sm mt-2 space-y-1 list-disc list-inside">
                           <li>Specialized in Autosys, Microservices, REST APIs, and Oracle SQL</li>
                           <li>Engineered and deployed over 30 components in OpenShift and on-premises environments</li>
@@ -506,9 +484,11 @@ const Blog = () => {
 
                   {/* Download CV Button */}
                   <div className="pt-4">
-                    <Button className="w-full sm:w-auto">
+                    <a href={MyCvAsPdf}>
+                      <Button className="w-full sm:w-auto" >
                       Download Full CV (PDF)
-                    </Button>
+                      </Button>
+                    </a>
                   </div>
                 </CardContent>
               </Card>
