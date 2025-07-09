@@ -387,22 +387,22 @@ const Blog = () => {
                   {/* Languages */}
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900 mb-3">Languages</h3>
-                    <div className="grid grid-cols-2 gap-3 text-slate-700">
-                      <div className="flex justify-between">
-                        <span>Portuguese</span>
-                        <span className="text-slate-500">Proficient (C2)</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
+                        <span className="font-medium text-slate-900">Portuguese</span>
+                        <Badge variant="default" className="text-xs">Native (C2)</Badge>
                       </div>
-                      <div className="flex justify-between">
-                        <span>English</span>
-                        <span className="text-slate-500">Advanced (C1)</span>
+                      <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
+                        <span className="font-medium text-slate-900">English</span>
+                        <Badge variant="secondary" className="text-xs">Advanced (C1)</Badge>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Spanish</span>
-                        <span className="text-slate-500">Advanced (C1)</span>
+                      <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
+                        <span className="font-medium text-slate-900">Spanish</span>
+                        <Badge variant="secondary" className="text-xs">Advanced (C1)</Badge>
                       </div>
-                      <div className="flex justify-between">
-                        <span>German</span>
-                        <span className="text-slate-500">Intermediate (B1)</span>
+                      <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
+                        <span className="font-medium text-slate-900">German</span>
+                        <Badge variant="outline" className="text-xs">Intermediate (B1)</Badge>
                       </div>
                     </div>
                   </div>
