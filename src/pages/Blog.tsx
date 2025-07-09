@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Calendar, ExternalLink, Hash, Linkedin } from "lucide-react";
+import { ArrowLeft, Calendar, ExternalLink, Hash, Linkedin, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BlogPost {
   id: string;
@@ -73,10 +74,55 @@ const mockBlogPosts: BlogPost[] = [
 const Blog = () => {
   const navigate = useNavigate();
   const [selectedPlatform, setSelectedPlatform] = useState<"all" | "linkedin" | "medium">("all");
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const filteredPosts = selectedPlatform === "all" 
-    ? mockBlogPosts 
-    : mockBlogPosts.filter(post => post.platform === selectedPlatform);
+    ? posts 
+    : posts.filter(post => post.platform === selectedPlatform);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const [linkedinResponse, mediumResponse] = await Promise.allSettled([
+          supabase.functions.invoke('fetch-linkedin-posts'),
+          supabase.functions.invoke('fetch-medium-posts')
+        ]);
+
+        const allPosts: BlogPost[] = [];
+
+        if (linkedinResponse.status === 'fulfilled' && linkedinResponse.value.data?.posts) {
+          allPosts.push(...linkedinResponse.value.data.posts);
+        } else {
+          console.warn('LinkedIn posts failed to load:', linkedinResponse.status === 'rejected' ? linkedinResponse.reason : linkedinResponse.value);
+        }
+
+        if (mediumResponse.status === 'fulfilled' && mediumResponse.value.data?.posts) {
+          allPosts.push(...mediumResponse.value.data.posts);
+        } else {
+          console.warn('Medium posts failed to load:', mediumResponse.status === 'rejected' ? mediumResponse.reason : mediumResponse.value);
+        }
+
+        // Sort posts by date (newest first)
+        allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        setPosts(allPosts);
+      } catch (err) {
+        console.error('Error fetching posts:', err);
+        setError('Failed to load posts');
+        // Fallback to mock data
+        setPosts(mockBlogPosts);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -107,44 +153,63 @@ const Blog = () => {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Error message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800">{error}</p>
+          </div>
+        )}
+
         {/* Filter buttons */}
         <div className="flex flex-wrap gap-2 mb-8">
           <Button
             variant={selectedPlatform === "all" ? "default" : "outline"}
             onClick={() => setSelectedPlatform("all")}
             className="flex items-center space-x-2"
+            disabled={loading}
           >
             <span>All Posts</span>
             <Badge variant="secondary" className="ml-2">
-              {mockBlogPosts.length}
+              {posts.length}
             </Badge>
           </Button>
           <Button
             variant={selectedPlatform === "linkedin" ? "default" : "outline"}
             onClick={() => setSelectedPlatform("linkedin")}
             className="flex items-center space-x-2"
+            disabled={loading}
           >
             <Linkedin size={16} />
             <span>LinkedIn</span>
             <Badge variant="secondary" className="ml-2">
-              {mockBlogPosts.filter(p => p.platform === "linkedin").length}
+              {posts.filter(p => p.platform === "linkedin").length}
             </Badge>
           </Button>
           <Button
             variant={selectedPlatform === "medium" ? "default" : "outline"}
             onClick={() => setSelectedPlatform("medium")}
             className="flex items-center space-x-2"
+            disabled={loading}
           >
             <Hash size={16} />
             <span>Medium</span>
             <Badge variant="secondary" className="ml-2">
-              {mockBlogPosts.filter(p => p.platform === "medium").length}
+              {posts.filter(p => p.platform === "medium").length}
             </Badge>
           </Button>
         </div>
 
+        {/* Loading state */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+            <span className="ml-2 text-slate-600">Loading posts...</span>
+          </div>
+        )}
+
         {/* Blog posts grid */}
-        <div className="space-y-6">
+        {!loading && (
+          <div className="space-y-6">
           {filteredPosts.map((post) => (
             <Card
               key={post.id}
@@ -203,7 +268,8 @@ const Blog = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
+          </div>
+        )}
 
         {/* No posts message */}
         {filteredPosts.length === 0 && (
