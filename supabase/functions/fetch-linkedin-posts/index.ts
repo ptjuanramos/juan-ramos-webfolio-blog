@@ -15,34 +15,53 @@ serve(async (req) => {
     const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
     const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
     
-    console.log('LinkedIn Client ID exists:', !!clientId);
-    console.log('LinkedIn Client ID length:', clientId?.length || 0);
-    console.log('LinkedIn Client Secret exists:', !!clientSecret);
-    console.log('LinkedIn Client Secret length:', clientSecret?.length || 0);
-    
     if (!clientId || !clientSecret) {
       throw new Error('LinkedIn credentials not configured');
     }
 
-    // Step 1: Get access token using client credentials flow
-    console.log('Getting LinkedIn access token...');
+    const url = new URL(req.url);
+    const code = url.searchParams.get('code');
+    const action = url.searchParams.get('action');
+
+    // If no code provided, return authorization URL
+    if (!code) {
+      const redirectUri = `${url.origin}/functions/v1/fetch-linkedin-posts`;
+      const scope = 'r_liteprofile%20r_member_social';
+      const state = crypto.randomUUID();
+      
+      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
+      
+      console.log('Generated auth URL:', authUrl);
+      
+      return new Response(JSON.stringify({ 
+        authUrl,
+        message: 'LinkedIn authorization required. Please visit the auth URL to authorize.',
+        posts: []
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Exchange authorization code for access token
+    console.log('Exchanging authorization code for access token...');
+    const redirectUri = `${url.origin}/functions/v1/fetch-linkedin-posts`;
     
     const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: `grant_type=client_credentials&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`,
+      body: `grant_type=authorization_code&code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`,
     });
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error('Token request failed:', tokenResponse.status, errorText);
-      throw new Error(`LinkedIn token request failed: ${tokenResponse.status} - ${errorText}`);
+      console.error('Token exchange failed:', tokenResponse.status, errorText);
+      throw new Error(`LinkedIn token exchange failed: ${tokenResponse.status} - ${errorText}`);
     }
 
     const tokenData = await tokenResponse.json();
-    console.log('Token response:', tokenData);
+    console.log('Token exchange successful');
     
     if (!tokenData.access_token) {
       throw new Error('No access token received from LinkedIn');
@@ -50,40 +69,59 @@ serve(async (req) => {
 
     const accessToken = tokenData.access_token;
 
-    // Step 2: Try to get organization info (since client credentials flow is for organizations)
-    console.log('Fetching organization info...');
-    
-    const orgResponse = await fetch('https://api.linkedin.com/v2/organizations?q=administeredBy&projection=(elements*(id,name,localizedName))', {
+    // Get user profile first
+    console.log('Fetching user profile...');
+    const profileResponse = await fetch('https://api.linkedin.com/v2/me', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'X-Restli-Protocol-Version': '2.0.0',
       },
     });
 
-    if (!orgResponse.ok) {
-      const errorText = await orgResponse.text();
-      console.error('Organization request failed:', orgResponse.status, errorText);
-      
-      // Try alternative approach - get posts from a specific profile ID
-      // Note: Client credentials flow has limited access, mainly for organization data
-      return new Response(JSON.stringify({ 
-        posts: [],
-        message: 'LinkedIn Client Credentials flow has limited access. Consider using personal access token or OAuth flow for user posts.',
-        error: `Organization API failed: ${orgResponse.status}`
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (!profileResponse.ok) {
+      const errorText = await profileResponse.text();
+      console.error('Profile request failed:', profileResponse.status, errorText);
+      throw new Error(`LinkedIn profile request failed: ${profileResponse.status}`);
     }
 
-    const orgData = await orgResponse.json();
-    console.log('Organization data:', orgData);
+    const profileData = await profileResponse.json();
+    console.log('Profile data received');
 
-    // For now, return empty posts with status info
-    // Client credentials flow is primarily for organization content, not personal posts
+    // Get user posts using their URN
+    console.log('Fetching user posts...');
+    const userUrn = `urn:li:person:${profileData.id}`;
+    const postsResponse = await fetch(`https://api.linkedin.com/v2/shares?q=owners&owners=${encodeURIComponent(userUrn)}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'X-Restli-Protocol-Version': '2.0.0',
+      },
+    });
+
+    if (!postsResponse.ok) {
+      const errorText = await postsResponse.text();
+      console.error('Posts request failed:', postsResponse.status, errorText);
+      throw new Error(`LinkedIn posts request failed: ${postsResponse.status}`);
+    }
+
+    const postsData = await postsResponse.json();
+    console.log('Posts data received, count:', postsData.elements?.length || 0);
+
+    // Transform LinkedIn posts to our format
+    const posts = (postsData.elements || []).map((post: any) => ({
+      id: post.id,
+      title: post.text?.text?.substring(0, 100) + '...' || 'LinkedIn Post',
+      excerpt: post.text?.text || 'No content available',
+      date: new Date(post.created?.time || Date.now()).toISOString().split('T')[0],
+      platform: 'linkedin' as const,
+      url: `https://www.linkedin.com/feed/update/${post.id}`,
+      tags: ['LinkedIn'],
+      readTime: '2 min read'
+    }));
+
     return new Response(JSON.stringify({ 
-      posts: [],
-      message: 'Connected to LinkedIn API successfully. Client credentials flow is limited to organization content.',
-      organizations: orgData.elements || []
+      posts,
+      message: `Successfully fetched ${posts.length} LinkedIn posts`,
+      profile: profileData
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
