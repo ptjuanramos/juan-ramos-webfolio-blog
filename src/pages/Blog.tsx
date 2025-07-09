@@ -380,7 +380,7 @@ const Blog = () => {
                     <h3 className="text-lg font-semibold text-slate-900 mb-3">Contact</h3>
                     <div className="text-slate-700 space-y-1">
                       <p>LinkedIn: linkedin.com/in/juanramospt</p>
-                      <p>Location: Portugal</p>
+                      <p>Location: Switzerland</p>
                     </div>
                   </div>
 
