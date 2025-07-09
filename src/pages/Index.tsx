@@ -117,7 +117,7 @@ const Index = () => {
             onClick={handleBlogClick}
             className="w-full bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg group"
           >
-            <span className="mr-2">Read My Blog</span>
+            <span className="mr-2">My Space</span>
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-200" />
           </Button>
 
