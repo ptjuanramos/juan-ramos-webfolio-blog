@@ -12,68 +12,117 @@ serve(async (req) => {
   }
 
   try {
-    const linkedinToken = Deno.env.get('LINKEDIN_ACCESS_TOKEN');
+    const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
+    const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
     
-    if (!linkedinToken) {
-      throw new Error('LinkedIn access token not configured');
+    if (!clientId || !clientSecret) {
+      throw new Error('LinkedIn credentials not configured');
     }
 
-    // Fetch user profile first to get the person ID
-    const profileResponse = await fetch('https://api.linkedin.com/v2/people/~', {
+    const url = new URL(req.url);
+    const code = url.searchParams.get('code');
+    
+    if (!code) {
+      // Return OAuth URL for authentication
+      const redirectUri = `${url.origin}/supabase/functions/v1/fetch-linkedin-posts`;
+      const scope = 'profile openid email w_member_social r_liteprofile r_emailaddress';
+      const state = 'linkedin_auth';
+      
+      const oauthUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
+        `response_type=code&` +
+        `client_id=${clientId}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `state=${state}&` +
+        `scope=${encodeURIComponent(scope)}`;
+
+      return new Response(JSON.stringify({ 
+        authUrl: oauthUrl,
+        message: 'Please authenticate with LinkedIn first' 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Exchange code for access token
+    const redirectUri = `${url.origin}/supabase/functions/v1/fetch-linkedin-posts`;
+    const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${linkedinToken}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        client_secret: clientSecret,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      throw new Error(`Token exchange failed: ${tokenResponse.status}`);
+    }
+
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+
+    // Get user profile
+    const profileResponse = await fetch('https://api.linkedin.com/v2/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
       },
     });
 
     if (!profileResponse.ok) {
-      throw new Error(`LinkedIn API error: ${profileResponse.status}`);
+      throw new Error(`Profile fetch failed: ${profileResponse.status}`);
     }
 
-    const profileData = await profileResponse.json();
-    const personId = profileData.id;
+    const profile = await profileResponse.json();
+    console.log('LinkedIn profile:', profile);
 
-    // Fetch posts (shares) by the user
+    // Try to get posts using the newer API
     const postsResponse = await fetch(
-      `https://api.linkedin.com/v2/shares?q=owners&owners=urn:li:person:${personId}&count=10&sortBy=CREATED_TIME`,
+      'https://api.linkedin.com/v2/ugcPosts?q=authors&authors=List(urn:li:person:' + profile.sub + ')&count=10',
       {
         headers: {
-          'Authorization': `Bearer ${linkedinToken}`,
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+          'X-Restli-Protocol-Version': '2.0.0',
         },
       }
     );
 
-    if (!postsResponse.ok) {
-      throw new Error(`LinkedIn posts API error: ${postsResponse.status}`);
+    let posts = [];
+    if (postsResponse.ok) {
+      const postsData = await postsResponse.json();
+      console.log('LinkedIn posts response:', postsData);
+      
+      posts = postsData.elements?.map((post: any) => {
+        const specificContent = post.specificContent?.['com.linkedin.ugc.ShareContent'];
+        const text = specificContent?.shareCommentary?.text || 'LinkedIn Post';
+        const createdTime = new Date(post.created?.time || Date.now());
+        
+        return {
+          id: post.id || Math.random().toString(),
+          title: text.split('\n')[0].substring(0, 100) || 'LinkedIn Post',
+          excerpt: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
+          date: createdTime.toISOString().split('T')[0],
+          platform: 'linkedin',
+          url: `https://www.linkedin.com/feed/update/${post.id?.replace('urn:li:ugcPost:', '')}`,
+          tags: ['LinkedIn', 'Professional'],
+          readTime: '2 min read'
+        };
+      }) || [];
+    } else {
+      console.log('Posts fetch failed:', postsResponse.status, await postsResponse.text());
     }
 
-    const postsData = await postsResponse.json();
-    
-    // Transform LinkedIn posts to match our expected format
-    const transformedPosts = postsData.elements?.map((post: any) => {
-      const text = post.text?.text || '';
-      const createdTime = new Date(post.created?.time || Date.now());
-      
-      return {
-        id: post.id || Math.random().toString(),
-        title: text.split('\n')[0].substring(0, 100) || 'LinkedIn Post',
-        excerpt: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
-        date: createdTime.toISOString().split('T')[0],
-        platform: 'linkedin',
-        url: `https://www.linkedin.com/feed/update/${post.id}`,
-        tags: ['LinkedIn', 'Professional'],
-        readTime: '2 min read'
-      };
-    }) || [];
+    console.log(`Fetched ${posts.length} LinkedIn posts`);
 
-    console.log(`Fetched ${transformedPosts.length} LinkedIn posts`);
-
-    return new Response(JSON.stringify({ posts: transformedPosts }), {
+    return new Response(JSON.stringify({ posts }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error fetching LinkedIn posts:', error);
+    console.error('Error in LinkedIn function:', error);
     return new Response(
       JSON.stringify({ error: error.message, posts: [] }), 
       {

@@ -95,10 +95,17 @@ const Blog = () => {
 
         const allPosts: BlogPost[] = [];
 
-        if (linkedinResponse.status === 'fulfilled' && linkedinResponse.value.data?.posts) {
-          allPosts.push(...linkedinResponse.value.data.posts);
+        if (linkedinResponse.status === 'fulfilled') {
+          const data = linkedinResponse.value.data;
+          if (data?.authUrl) {
+            // If LinkedIn needs authentication, open auth window
+            setError('LinkedIn authentication required. Please authenticate to see your posts.');
+            console.log('LinkedIn auth URL:', data.authUrl);
+          } else if (data?.posts) {
+            allPosts.push(...data.posts);
+          }
         } else {
-          console.warn('LinkedIn posts failed to load:', linkedinResponse.status === 'rejected' ? linkedinResponse.reason : linkedinResponse.value);
+          console.warn('LinkedIn posts failed to load:', linkedinResponse.reason);
         }
 
         if (mediumResponse.status === 'fulfilled' && mediumResponse.value.data?.posts) {
