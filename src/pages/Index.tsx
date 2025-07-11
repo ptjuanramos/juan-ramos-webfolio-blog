@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Github, Linkedin, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import MyPicture  from "../../public/images/my-picture.png"
 
 const Index = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const Index = () => {
           {/* Profile Picture */}
           <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden shadow-lg border-2 border-slate-200">
             <img 
-              src="/public/images/my-picture.png"
+              src={MyPicture}
               alt="Juan Ramos"
               className="w-full h-full object-cover"
             />
