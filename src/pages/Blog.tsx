@@ -33,16 +33,16 @@ interface Project {
 }
 
 const mockProjects: Project[] = [
-  // {
-  //   id: "1",
-  //   title: "E-commerce Microservices Platform",
-  //   description: "Built a scalable e-commerce platform using microservices architecture with Docker and Kubernetes. Implemented event sourcing and CQRS patterns for high performance.",
-  //   technologies: ["Node.js", "Docker", "Kubernetes", "Redis", "PostgreSQL"],
-  //   date: "2024-06-28",
-  //   status: "completed",
-  //   blogPostUrl: "https://medium.com/@juanramos/microservices-patterns",
-  //   githubUrl: "https://github.com/juanramos/ecommerce-microservices"
-  // },
+  {
+    id: "1",
+    title: "Hotel Proposer – AI Agent System for Hotel Outreach",
+    description: "Design an AI agent system to research hotels in Switzerland, prepare personalized outreach, validate proposals, and send emails — **entirely via agent-based orchestration**.",
+    technologies: ["Python", "CrewAI", "LangGraph"],
+    date: "Sometime in June",
+    status: "ongoing",
+    blogPostUrl: "https://medium.com/@ptjuanramos/iteration-1-refining-agent-collaboration-with-langgraph-crewai-3b6a4f20bb42",
+    githubUrl: "https://github.com/ptjuanramos/hotel-proposer"
+  },
   // {
   //   id: "2",
   //   title: "ML Model Deployment Pipeline",
