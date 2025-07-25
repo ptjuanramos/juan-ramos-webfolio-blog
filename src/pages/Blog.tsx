@@ -64,7 +64,11 @@ const mockProjects: Project[] = [
   // }
 ];
 
-const Blog = () => {
+interface BlogProps {
+  defaultTab?: "blog" | "projects" | "cv";
+}
+
+const Blog = ({ defaultTab = "blog" }: BlogProps) => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,8 +123,8 @@ const Blog = () => {
       } catch (err) {
         console.error('Error fetching Medium posts:', err);
         setError('Failed to load Medium posts');
-        // Fallback to mock Medium posts
-        setPosts(mockBlogPosts);
+        // Set empty posts array on error
+        setPosts([]);
       } finally {
         setLoading(false);
       }
@@ -158,7 +162,7 @@ const Blog = () => {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <Tabs defaultValue="blog" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="blog" className="flex items-center gap-2">
               <FileText size={16} />
